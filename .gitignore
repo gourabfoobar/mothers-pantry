@@ -1,0 +1,4 @@
+.derivedData/
+__pycache__/
+*.pyc
+Demo/*.mp4
