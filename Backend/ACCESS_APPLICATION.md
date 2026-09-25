@@ -10,7 +10,7 @@ The form requires a production HTTPS redirect URI and a publicly viewable demo v
 
 **Team / Project Name:** Mother’s Pantry
 
-**GitHub / Portfolio:** https://github.com/gourabfoobar/mothers-pantry (private repository)
+**GitHub / Portfolio:** https://github.com/gourabfoobar/mothers-pantry (public repository)
 
 **LinkedIn:** https://www.linkedin.com/in/gourab-baksi
 
@@ -32,6 +32,6 @@ The iOS app is native SwiftUI. A backend bridge connects to Swiggy Instamart MCP
 
 **Production redirect URI reserved for the integration:** https://mothers-pantry-bridge.onrender.com/oauth/callback
 
-The Render service is live at https://mothers-pantry-bridge.onrender.com/status and currently runs the demo provider only. Live Swiggy mode requires per-user authentication and token storage before it can safely run on a public server. The GitHub repository is private, so external reviewers need access before they can inspect its source.
+The Render service is live at https://mothers-pantry-bridge.onrender.com/status and currently runs the demo provider only. Live Swiggy mode requires per-user authentication and token storage before it can safely run on a public server. The GitHub repository is public and available for source review.
 
 The final form page asks for legal name as on government ID, date of birth, PAN, address, business category, agreement email, and confirmation of accuracy. The applicant enters and submits the sensitive legal details directly. Do not claim live production integration, privacy controls, or a security audit that has not been implemented.

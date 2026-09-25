@@ -33,7 +33,7 @@ The bridge is bound to localhost and currently supports the iPhone simulator on 
 
 ## Hosting setup
 
-The Python bridge is deployed as a **demo-only** Render web service at https://mothers-pantry-bridge.onrender.com/status. Its reserved OAuth callback is https://mothers-pantry-bridge.onrender.com/oauth/callback. The service uses the private `gourabfoobar/mothers-pantry` GitHub repository, the free Python 3 instance in Singapore, and `/status` as the health check. The included `render.yaml` records the same configuration for future setup; this service was created through the Render dashboard.
+The Python bridge is deployed as a **demo-only** Render web service at https://mothers-pantry-bridge.onrender.com/status. Its reserved OAuth callback is https://mothers-pantry-bridge.onrender.com/oauth/callback. The service uses the public `gourabfoobar/mothers-pantry` GitHub repository, the free Python 3 instance in Singapore, and `/status` as the health check. The included `render.yaml` records the same configuration for future setup; this service was created through the Render dashboard.
 
 The free instance is suitable for this access-application prototype and can sleep when idle. Upgrade the service before serving real users. The hosted bridge intentionally refuses live Swiggy mode: the local prototype holds one OAuth token in memory, so a public service first needs authenticated users and separate, persistent token storage. Keep `PANTRY_PROVIDER=demo` on Render until that work is complete. The iPhone app still points to the local bridge; hosting the demo callback does not connect it to live Swiggy.
 
