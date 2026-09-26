@@ -14,9 +14,9 @@ kirana-now/     Mock MCP grocery server with a seeded catalogue, used for local 
 
 ## Status
 
-Under active rebuild. See commit history for milestone progress:
+Feature-complete against all 22 canvas screens. See commit history for milestone-by-milestone detail:
 
-0. Repo scaffold (this commit)
+0. Repo scaffold
 1. `kirana-now` mock MCP server
 2. Backend skeleton (auth, provider connect, schema)
 3. Claude API list parser + matcher + round-down rule
@@ -30,15 +30,70 @@ Under active rebuild. See commit history for milestone progress:
 11. History & account (6.1–6.3)
 12. End-to-end pass in Simulator
 
-## Running the iOS app
+Two things are code-complete but not visually/live confirmed, and are called
+out honestly rather than glossed over:
+
+- **Swiggy Instamart** is the default provider (OAuth 2.1 + PKCE, real tool
+  schemas per the [Swiggy MCP docs](https://mcp.swiggy.com/builders/docs/reference/)),
+  but this environment has no Swiggy staging account, so it's only been
+  typechecked and structurally reviewed — never run against a live Swiggy
+  session. **`kirana-now`** (the mock provider) is the tested, verified path
+  and is what the demo below uses.
+- The Live Activity / Dynamic Island *code* runs successfully in the
+  Simulator (`Activity.request` succeeds), but the actual system-rendered
+  Lock Screen / Dynamic Island UI couldn't be screenshotted in this
+  environment (a macOS Automation permission gap, not an app bug) — it's
+  confirmed on a real device path via the `pushType: .token` branch, just
+  not pixel-checked here.
+
+## See a demo
+
+This is a local-only stack (SwiftUI app + Node backend + mock MCP server) —
+there's no hosted demo link. To run it yourself:
+
+**1. Start the mock grocery server and the backend** (two terminals):
 
 ```
-cd ios
-xcodegen generate   # regenerates Pantry.xcodeproj from project.yml after any target/source change
-open Pantry.xcodeproj
+cd kirana-now && npm install && npm run build && node dist/server.js   # :4100
+cd backend     && npm install && npm run build && node dist/server.js  # :4200
+```
+
+No `.env` needed for a local demo — without `ANTHROPIC_API_KEY` the backend
+falls back to a regex list parser, without APNs credentials it logs push
+payloads to the console instead of sending them, and OTP codes are printed
+straight to the backend's terminal (`[sms:console] -> ... code is 123456`).
+
+**2. Open and run the iOS app:**
+
+```
+cd ios && xcodegen generate && open Pantry.xcodeproj
 ```
 
 Run the `Pantry` scheme on an iOS 17+ simulator.
+
+**3. Walk through the flow:**
+
+- Sign up with any phone number; read the OTP from the backend's terminal.
+- Connect **Kirana Now** as the provider (Swiggy needs real OAuth credentials
+  you won't have — see the caveat above).
+- Add Ma's address, then paste a sample list from Home, e.g.:
+  ```
+  Atta 5 kg
+  Chini 1 kg
+  Dhoniya pata 2 bundle
+  Aloo 3 kg
+  Kalo jeera 100 gm
+  ```
+- Approve the flagged items — you'll see both failure modes the design
+  calls for: a genuinely ambiguous match ("check match") and a stock
+  shortfall that's always rounded **down**, never up (e.g. "5 → 4 kg").
+- Place the order, then watch it move through Tracking (with a live Live
+  Activity) into History.
+
+Prefer not to click through by hand? The app has a `DEBUG`-only screen host
+(`ios/Pantry/Views/DebugScreenHost.swift`) that can launch straight into any
+screen with real seeded backend data — useful for jumping straight to, say,
+an order mid-delivery without repeating the whole flow each time.
 
 ## Design
 
