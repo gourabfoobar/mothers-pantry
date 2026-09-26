@@ -1,0 +1,124 @@
+-- Mother's Pantry backend schema (SQLite).
+-- Milestone 2 wires up users/otp/recipients/addresses/provider_connections/devices.
+-- Milestone 3-4 wire up the list/matching/cart/order tables below.
+
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  phone TEXT NOT NULL UNIQUE,
+  name TEXT,
+  email TEXT,
+  notifications_enabled INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS otp_codes (
+  phone TEXT PRIMARY KEY,
+  code TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS recipients (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  name TEXT NOT NULL,
+  relation TEXT,
+  phone TEXT,
+  may_call INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS addresses (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  recipient_id TEXT REFERENCES recipients(id),
+  label TEXT NOT NULL,
+  line1 TEXT NOT NULL,
+  city TEXT,
+  pincode TEXT,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS provider_connections (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  provider_id TEXT NOT NULL,
+  access_token TEXT,
+  nearest_store_id TEXT,
+  nearest_store_name TEXT,
+  connected_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS devices (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  push_token TEXT,
+  activity_push_to_start_token TEXT,
+  registered_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS grocery_lists (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  address_id TEXT NOT NULL REFERENCES addresses(id),
+  raw_text TEXT NOT NULL,
+  cart_id TEXT,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS list_lines (
+  id TEXT PRIMARY KEY,
+  list_id TEXT NOT NULL REFERENCES grocery_lists(id),
+  raw_text TEXT NOT NULL,
+  position INTEGER NOT NULL,
+  is_greeting INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS match_candidates (
+  id TEXT PRIMARY KEY,
+  line_id TEXT NOT NULL REFERENCES list_lines(id),
+  catalog_item_id TEXT NOT NULL,
+  catalog_item_name TEXT NOT NULL,
+  confidence REAL NOT NULL,
+  reason TEXT,
+  price REAL,
+  rank INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+  id TEXT PRIMARY KEY,
+  list_id TEXT NOT NULL REFERENCES grocery_lists(id),
+  line_id TEXT NOT NULL REFERENCES list_lines(id),
+  catalog_item_id TEXT,
+  catalog_item_name TEXT,
+  requested_qty REAL NOT NULL,
+  requested_unit TEXT NOT NULL,
+  approved_qty REAL,
+  pack_size REAL,
+  pack_unit TEXT,
+  pack_count INTEGER,
+  unit_price REAL,
+  line_total REAL,
+  status TEXT NOT NULL DEFAULT 'needs_match',
+  rounded_down INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  list_id TEXT REFERENCES grocery_lists(id),
+  address_id TEXT NOT NULL REFERENCES addresses(id),
+  provider_order_id TEXT,
+  status TEXT NOT NULL DEFAULT 'placed',
+  total REAL,
+  placed_at TEXT,
+  eta_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS order_events (
+  id TEXT PRIMARY KEY,
+  order_id TEXT NOT NULL REFERENCES orders(id),
+  type TEXT NOT NULL,
+  label TEXT,
+  at TEXT NOT NULL
+);
