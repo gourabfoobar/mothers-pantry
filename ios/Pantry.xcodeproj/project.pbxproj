@@ -9,9 +9,14 @@
 /* Begin PBXBuildFile section */
 		0CDA53E7244290C4458DE150 /* PantryWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71B06496D2DE199934C38F6F /* PantryWidgetBundle.swift */; };
 		0F72BB6F7F67356C8381593B /* ScaffoldPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 158D232C5F33BC22BADC2FAE /* ScaffoldPlaceholderView.swift */; };
+		18D5EB9FB0B7F6F33075C874 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30877DBE1322A7E3DB0F599E /* APIClient.swift */; };
+		19CE1734DBA0368ADF911906 /* DTOs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12ABB5F026041A3F9681810A /* DTOs.swift */; };
+		2769A9767499E1614A44B2E0 /* CachedOrder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D11B5CCC58CCD670B3AE48 /* CachedOrder.swift */; };
+		2BC998DD089216FE272ED94B /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CD7463AA1097D504A62D03F /* AppState.swift */; };
 		B78F1B18BFE7B0D54FE8A0FC /* PantryOrderActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F636B1F637C79FBF0D9A0B5 /* PantryOrderActivityAttributes.swift */; };
 		C3FB45F540728138C730D217 /* PantryWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2037A56DC858D0434BD576C1 /* PantryWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C45D2E6A597477310134BAE5 /* PantryOrderActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F636B1F637C79FBF0D9A0B5 /* PantryOrderActivityAttributes.swift */; };
+		D96C7CF2E3D168E86FC26385 /* KeychainTokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93FFA258341170DE0824752C /* KeychainTokenStore.swift */; };
 		E288593D78D80148DF43D68F /* PantryApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 905F391990E9FA3E8E4CFCC5 /* PantryApp.swift */; };
 /* End PBXBuildFile section */
 
@@ -41,19 +46,34 @@
 
 /* Begin PBXFileReference section */
 		0F636B1F637C79FBF0D9A0B5 /* PantryOrderActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PantryOrderActivityAttributes.swift; sourceTree = "<group>"; };
+		12ABB5F026041A3F9681810A /* DTOs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTOs.swift; sourceTree = "<group>"; };
 		158D232C5F33BC22BADC2FAE /* ScaffoldPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaffoldPlaceholderView.swift; sourceTree = "<group>"; };
 		2037A56DC858D0434BD576C1 /* PantryWidgetExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = PantryWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		30877DBE1322A7E3DB0F599E /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		5CD7463AA1097D504A62D03F /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		71B06496D2DE199934C38F6F /* PantryWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PantryWidgetBundle.swift; sourceTree = "<group>"; };
 		905F391990E9FA3E8E4CFCC5 /* PantryApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PantryApp.swift; sourceTree = "<group>"; };
 		93AB7EE7F6B1C144205C3250 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		93FFA258341170DE0824752C /* KeychainTokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainTokenStore.swift; sourceTree = "<group>"; };
 		961059FF06D7D198F4E9521F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C7D11B5CCC58CCD670B3AE48 /* CachedOrder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedOrder.swift; sourceTree = "<group>"; };
 		D7137AFC04D7CA775CE75971 /* Pantry.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Pantry.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		255157D25BBD302A67EACB0B /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				C7D11B5CCC58CCD670B3AE48 /* CachedOrder.swift */,
+				12ABB5F026041A3F9681810A /* DTOs.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		2BA0C383A44F56A89AC035FA /* App */ = {
 			isa = PBXGroup;
 			children = (
+				5CD7463AA1097D504A62D03F /* AppState.swift */,
 				905F391990E9FA3E8E4CFCC5 /* PantryApp.swift */,
 			);
 			path = App;
@@ -71,7 +91,9 @@
 			isa = PBXGroup;
 			children = (
 				2BA0C383A44F56A89AC035FA /* App */,
+				255157D25BBD302A67EACB0B /* Models */,
 				A00AA9DAA3EECAAFDFAADC14 /* Resources */,
+				FF2140EB7D6B4E539B226829 /* Services */,
 				3930EC6AF828CA963319B7E5 /* Views */,
 			);
 			path = Pantry;
@@ -110,6 +132,15 @@
 				2037A56DC858D0434BD576C1 /* PantryWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		FF2140EB7D6B4E539B226829 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				30877DBE1322A7E3DB0F599E /* APIClient.swift */,
+				93FFA258341170DE0824752C /* KeychainTokenStore.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 		FFF1C1F01D398FBCF7A01F36 /* PantryWidget */ = {
@@ -196,6 +227,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				18D5EB9FB0B7F6F33075C874 /* APIClient.swift in Sources */,
+				2BC998DD089216FE272ED94B /* AppState.swift in Sources */,
+				2769A9767499E1614A44B2E0 /* CachedOrder.swift in Sources */,
+				19CE1734DBA0368ADF911906 /* DTOs.swift in Sources */,
+				D96C7CF2E3D168E86FC26385 /* KeychainTokenStore.swift in Sources */,
 				E288593D78D80148DF43D68F /* PantryApp.swift in Sources */,
 				B78F1B18BFE7B0D54FE8A0FC /* PantryOrderActivityAttributes.swift in Sources */,
 				0F72BB6F7F67356C8381593B /* ScaffoldPlaceholderView.swift in Sources */,
