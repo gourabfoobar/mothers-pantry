@@ -16,7 +16,11 @@ struct WelcomeView: View {
                     case .name(let phone):
                         NameView(phone: phone, path: $path)
                     case .providerPicker:
-                        ComingSoonView(title: "Choose provider", milestone: 7)
+                        ProviderPickerView(path: $path)
+                    case .providerAuthorize(let providerId, let providerName):
+                        AuthorizeView(providerId: providerId, providerName: providerName, path: $path)
+                    case .providerConnected:
+                        ConnectedView()
                     }
                 }
         }

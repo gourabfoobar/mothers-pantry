@@ -33,6 +33,12 @@ struct ProviderInfo: Decodable, Identifiable, Hashable {
     let name: String
     let subtitle: String
     let available: Bool
+    let isDefault: Bool
+}
+
+struct StartedSwiggyAuth: Decodable {
+    let authorizeUrl: String
+    let state: String
 }
 
 struct ProviderConnectionInfo: Decodable {

@@ -151,8 +151,15 @@ final class APIClient {
         try await request("/providers", authorized: false)
     }
 
+    /// kirana-now: connects immediately, no real account needed.
     func authorizeProvider(_ id: String) async throws -> ProviderConnectionInfo {
-        try await request("/providers/\(id)/authorize")
+        try await request("/providers/\(id)/authorize", method: "POST")
+    }
+
+    /// Swiggy: returns a URL to open in a browser; Swiggy hosts phone+OTP
+    /// itself and redirects to the backend's callback when done.
+    func startSwiggyAuthorize() async throws -> StartedSwiggyAuth {
+        try await request("/providers/swiggy/authorize", method: "POST")
     }
 
     func providerConnection() async throws -> ProviderConnectionInfo? {
@@ -192,7 +199,7 @@ final class APIClient {
     }
 
     func matchList(_ listId: String) async throws -> Review {
-        try await request("/lists/\(listId)/match")
+        try await request("/lists/\(listId)/match", method: "POST")
     }
 
     func review(_ listId: String) async throws -> Review {
@@ -204,15 +211,15 @@ final class APIClient {
     }
 
     func rejectMatch(orderItemId: String) async throws {
-        let _: EmptyResponse = try await request("/matches/\(orderItemId)/reject")
+        let _: EmptyResponse = try await request("/matches/\(orderItemId)/reject", method: "POST")
     }
 
     func approveQty(orderItemId: String) async throws {
-        let _: EmptyResponse = try await request("/qty/\(orderItemId)/approve")
+        let _: EmptyResponse = try await request("/qty/\(orderItemId)/approve", method: "POST")
     }
 
     func rejectQty(orderItemId: String) async throws {
-        let _: EmptyResponse = try await request("/qty/\(orderItemId)/reject")
+        let _: EmptyResponse = try await request("/qty/\(orderItemId)/reject", method: "POST")
     }
 
     // MARK: - Cart & orders
@@ -222,7 +229,7 @@ final class APIClient {
     }
 
     func placeOrder(listId: String) async throws -> PlacedOrder {
-        try await request("/orders/place/\(listId)")
+        try await request("/orders/place/\(listId)", method: "POST")
     }
 
     func registerActivityToken(orderId: String, token: String) async throws {
@@ -238,7 +245,7 @@ final class APIClient {
     }
 
     func reorder(_ orderId: String) async throws -> ReorderResult {
-        try await request("/orders/\(orderId)/reorder")
+        try await request("/orders/\(orderId)/reorder", method: "POST")
     }
 
     // MARK: - Devices

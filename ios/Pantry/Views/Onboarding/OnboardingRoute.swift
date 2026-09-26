@@ -7,4 +7,6 @@ enum OnboardingRoute: Hashable {
     case otp(phone: String)
     case name(phone: String)
     case providerPicker
+    case providerAuthorize(providerId: String, providerName: String)
+    case providerConnected
 }
