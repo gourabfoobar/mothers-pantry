@@ -36,6 +36,11 @@ CREATE TABLE IF NOT EXISTS addresses (
   line1 TEXT NOT NULL,
   city TEXT,
   pincode TEXT,
+  -- Cache of this address as created on the currently-connected provider
+  -- (Swiggy's own addressId from create_address/get_addresses; irrelevant
+  -- for kirana-now, which accepts our internal id directly).
+  provider_id TEXT,
+  provider_address_id TEXT,
   created_at TEXT NOT NULL
 );
 
@@ -44,9 +49,31 @@ CREATE TABLE IF NOT EXISTS provider_connections (
   user_id TEXT NOT NULL REFERENCES users(id),
   provider_id TEXT NOT NULL,
   access_token TEXT,
+  expires_at TEXT,
   nearest_store_id TEXT,
   nearest_store_name TEXT,
   connected_at TEXT NOT NULL
+);
+
+-- In-flight Swiggy OAuth 2.1 + PKCE handshakes (RFC 7591 dynamic client
+-- registration means there's no static client id to configure).
+CREATE TABLE IF NOT EXISTS oauth_sessions (
+  state TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  provider_id TEXT NOT NULL,
+  code_verifier TEXT NOT NULL,
+  redirect_uri TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending', -- pending | complete | failed
+  error TEXT,
+  created_at TEXT NOT NULL
+);
+
+-- The Dynamic Client Registration response, cached so we only register once
+-- per provider per environment.
+CREATE TABLE IF NOT EXISTS oauth_clients (
+  provider_id TEXT PRIMARY KEY,
+  client_id TEXT NOT NULL,
+  registered_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS devices (
@@ -96,7 +123,7 @@ CREATE TABLE IF NOT EXISTS order_items (
   requested_qty REAL NOT NULL,
   requested_unit TEXT NOT NULL,
   approved_qty REAL, -- the allocated/fulfilled quantity, set as soon as matching resolves a candidate; `status` tracks whether the user has actually approved it
-  packs_json TEXT,
+  pack_description TEXT,
   line_total REAL,
   status TEXT NOT NULL DEFAULT 'needs_match',
   rounded_down INTEGER NOT NULL DEFAULT 0,

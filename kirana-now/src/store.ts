@@ -65,8 +65,21 @@ export function allocatePacks(itemId: string, requestedQty: number, requestedUni
   const item = findItem(itemId);
   if (!item) return undefined;
 
-  const family = UNIT_TO_BASE[requestedUnit] !== undefined ? requestedUnit : item.packs[0]?.unit ?? "pcs";
-  const requestedBase = requestedQty * (UNIT_TO_BASE[family] ?? 1);
+  let family: string;
+  let requestedBase: number;
+  if (UNIT_TO_BASE[requestedUnit] !== undefined) {
+    family = requestedUnit;
+    requestedBase = requestedQty * UNIT_TO_BASE[family];
+  } else {
+    // Unrecognized unit (e.g. Ma's "2 bundle") — treat the quantity as a
+    // pack count against the item's own smallest pack, rather than
+    // silently reinterpreting it as some other unit's number.
+    const smallest = [...item.packs].sort(
+      (a, b) => a.size * (UNIT_TO_BASE[a.unit] ?? 1) - b.size * (UNIT_TO_BASE[b.unit] ?? 1),
+    )[0];
+    family = smallest?.unit ?? "pcs";
+    requestedBase = requestedQty * (smallest ? smallest.size * (UNIT_TO_BASE[smallest.unit] ?? 1) : 1);
+  }
 
   const packsByBaseSizeDesc = [...item.packs]
     .filter((p) => UNIT_TO_BASE[p.unit] !== undefined)

@@ -27,11 +27,47 @@ whether to continue to the "About you" screen or go straight Home.
 
 ## Providers
 
-`GET /providers` lists Kirana Now, Bazaar Direct, FreshCart (available) and
-Daily Basket (not available at this pincode), matching the canvas's picker.
-Only `kirana-now` is backed by a live MCP connection (`src/mcp/kiranaClient.ts`)
-today; connecting any other provider records a connection row but nothing
-downstream talks to it yet.
+`GET /providers` returns two real, fully-wired options — no filler entries:
+
+- **`swiggy`** (`isDefault: true`) — the real
+  [Swiggy Instamart MCP server](https://mcp.swiggy.com/builders/docs/reference/instamart),
+  OAuth 2.1 + PKCE with dynamic client registration
+  (`src/providers/swiggyOAuth.ts`, per
+  [Authenticate](https://mcp.swiggy.com/builders/docs/start/authenticate.md)).
+  `POST /providers/swiggy/authorize` returns an `authorizeUrl` for the app to
+  open in a browser; Swiggy hosts phone+OTP itself and redirects to
+  `GET /providers/swiggy/callback`, which exchanges the code and stores the
+  access token (5-day lifetime, no refresh token in Swiggy's v1 — a 401
+  means re-running the flow, not silent renewal).
+- **`kirana-now`** — the local mock MCP server, always available with no
+  account, useful for offline dev and for demoing the "always round down"
+  rule with data we control (Swiggy's real inventory won't reliably
+  reproduce the same short-stock scenario).
+
+`src/providers/types.ts` defines a `ProviderClient` interface (search, cart,
+place order, order status) that `src/providers/kirana.ts` and
+`src/providers/swiggy.ts` both implement, so `matcher.ts`, `listService.ts`,
+`routes/orders.ts` and the order poller never branch on which provider is
+connected — `src/providers/registry.ts` resolves the user's most-recently-
+connected provider (falling back to `PANTRY_DEFAULT_PROVIDER`, default
+`swiggy`). `src/providers/addressResolution.ts` handles the one real
+difference between them: kirana-now accepts our own address id as-is, while
+Swiggy needs its own `addressId` (created once via `create_address` and
+cached on the address row).
+
+**Honesty note**: the Swiggy integration is built strictly to the published
+tool contracts and schemas, but this environment has no Swiggy staging
+account, so it has never been exercised against a live Swiggy session — only
+typechecked and structurally reviewed. `kirana-now` is the tested, verified
+path (see the milestone 3/4 sections below). Notable adaptations forced by
+Swiggy's real API shape: `update_cart` replaces the entire cart on every
+call (not additive), so the adapter keeps a running item list and resends it
+in full; Swiggy has no stock-count concept, so a "rounded down" signal comes
+from `update_cart`'s `reducedQuantityItems` or a `maxQuantity` cap rather
+than kirana-now's pack-inventory model; and `track_order`'s required
+lat/lng aren't obtainable from the privacy-scrubbed `get_addresses` response,
+so status polling uses `get_delivery_status` (which resolves coordinates
+from `addressId` server-side) instead.
 
 ## Data
 
@@ -48,12 +84,12 @@ changes beyond typing `req.userId!` past `requireAuth`.)
 `HeuristicListParser` so the whole flow works offline. `POST /lists/:id/match`
 runs each parsed item through `src/services/matcher.ts`:
 
-1. `search_products` on kirana-now, ranked by alias match.
+1. `searchProducts` against the connected provider, ranked by relevance.
 2. A **tied top score** (e.g. "kalo jeera" matching both nigella seeds and
    black cumin equally) → `needs_match`, both candidates returned.
-3. A **requested unit kirana-now can't map without guessing** (e.g. "2
+3. A **requested unit the provider can't map without guessing** (e.g. "2
    bundle") → confidence penalty → `needs_match`.
-4. Either way, `update_cart_item` always runs for the best-guess candidate —
+4. Either way, `updateCartItem` always runs for the best-guess candidate —
    **a rounded-down allocation always requires approval** (`needs_qty`),
    overriding an otherwise-confident match.
 
@@ -72,14 +108,14 @@ switching a match to an alternate candidate, and rejecting a line.
   every non-rejected item is `approved` (canvas note 4: "Checkout unlocks
   once every item is approved or removed").
 - `POST /orders/place/:listId` — 409s if anything is unresolved, otherwise
-  calls kirana-now's `place_order` and creates the local `orders` row.
+  calls the connected provider's `placeOrder` and creates the local `orders` row.
 - `POST /orders/:id/activity-token` — the iOS app posts its Live Activity's
   push-to-update token here once it starts the Activity.
 - `GET /orders`, `GET /orders/:id`, `POST /orders/:id/reorder` (re-runs
   matching against today's stock, sharing `src/services/listService.ts` with
   the initial `POST /lists/:id/match`).
 
-`src/services/orderPoller.ts` polls kirana-now's `get_order_status` every
+`src/services/orderPoller.ts` polls the connected provider's `getOrderStatus` every
 `ORDER_POLL_INTERVAL_MS` (default 5s) for every non-delivered order, records
 new `order_events`, and pushes an ActivityKit update through
 `src/services/apns.ts` whenever status changes — `end` on delivery, `update`

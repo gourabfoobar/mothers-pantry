@@ -2,19 +2,24 @@ import { Router } from "express";
 import { z } from "zod";
 import { db } from "../db/index.js";
 import { requireAuth, type AuthedRequest } from "../services/auth.js";
-import { callKirana } from "../mcp/kiranaClient.js";
+import { activeProviderForUser } from "../providers/registry.js";
+import { resolveProviderAddressId } from "../providers/addressResolution.js";
+import type { ProviderContext } from "../providers/types.js";
 
 export const matchesRouter = Router();
 
 function loadOrderItem(orderItemId: string, userId: string) {
   return db
     .prepare(
-      `SELECT oi.id, oi.list_id as listId, gl.cart_id as cartId, oi.requested_unit as requestedUnit
+      `SELECT oi.id, oi.list_id as listId, gl.cart_id as cartId, gl.address_id as addressId,
+              oi.requested_unit as requestedUnit
        FROM order_items oi
        JOIN grocery_lists gl ON gl.id = oi.list_id
        WHERE oi.id = ? AND gl.user_id = ?`,
     )
-    .get(orderItemId, userId) as { id: string; listId: string; cartId: string; requestedUnit: string } | undefined;
+    .get(orderItemId, userId) as
+    | { id: string; listId: string; cartId: string; addressId: string; requestedUnit: string }
+    | undefined;
 }
 
 /** Approve a match by keeping the pre-selected candidate, or switching to an alternate. */
@@ -41,24 +46,23 @@ matchesRouter.post("/:id/approve", requireAuth, async (req: AuthedRequest, res) 
       return;
     }
     const requestedQty = db.prepare("SELECT requested_qty as q FROM order_items WHERE id = ?").get(item.id) as { q: number };
-    const result = await callKirana<{ allocation: any }>("update_cart_item", {
-      cartId: item.cartId,
-      itemId: parsed.data.catalogItemId,
-      requestedQty: requestedQty.q,
-      requestedUnit: item.requestedUnit,
-    });
-    const allocation = result.ok ? result.data?.allocation : undefined;
+
+    const provider = activeProviderForUser(req.userId!);
+    const providerAddressId = await resolveProviderAddressId(provider, req.userId!, item.addressId);
+    const ctx: ProviderContext = { userId: req.userId!, providerAddressId };
+    const allocation = await provider.updateCartItem(ctx, item.cartId, parsed.data.catalogItemId, requestedQty.q, item.requestedUnit);
+
     db.prepare(
-      `UPDATE order_items SET catalog_item_id = ?, catalog_item_name = ?, approved_qty = ?, packs_json = ?,
+      `UPDATE order_items SET catalog_item_id = ?, catalog_item_name = ?, approved_qty = ?, pack_description = ?,
          line_total = ?, rounded_down = ?, status = ? WHERE id = ?`,
     ).run(
       parsed.data.catalogItemId,
       candidate.name,
-      allocation?.fulfilledQty ?? null,
-      allocation ? JSON.stringify(allocation.packs) : null,
-      allocation?.lineTotal ?? null,
-      allocation?.roundedDown ? 1 : 0,
-      allocation?.roundedDown ? "needs_qty" : "approved",
+      allocation.fulfilledQty,
+      allocation.packDescription,
+      allocation.lineTotal,
+      allocation.roundedDown ? 1 : 0,
+      allocation.roundedDown ? "needs_qty" : "approved",
       item.id,
     );
   } else {

@@ -1,18 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { db } from "../db/index.js";
-import { callKirana } from "../mcp/kiranaClient.js";
+import { providerById } from "../providers/registry.js";
+import type { OrderStatus, ProviderContext, ProviderOrder } from "../providers/types.js";
 import { pushProvider, type LiveActivityContentState } from "./apns.js";
 
-interface ProviderOrder {
-  id: string;
-  status: "placed" | "packed" | "on_the_way" | "delivered";
-  events: { status: string; label: string; at: string }[];
-  courierName: string;
-  courierDistanceKm: number;
-  etaAt: string;
-}
-
-const ETA_LABELS: Record<ProviderOrder["status"], string> = {
+const ETA_LABELS: Record<OrderStatus, string> = {
   placed: "Order placed",
   packed: "Packed",
   on_the_way: "On the way",
@@ -20,30 +12,50 @@ const ETA_LABELS: Record<ProviderOrder["status"], string> = {
 };
 
 function contentState(order: ProviderOrder): LiveActivityContentState {
-  return { status: ETA_LABELS[order.status], etaText: new Date(order.etaAt).toLocaleTimeString() };
+  return { status: ETA_LABELS[order.status], etaText: order.etaAt ? new Date(order.etaAt).toLocaleTimeString() : "" };
 }
 
 async function pollOnce() {
   const active = db
     .prepare(
-      `SELECT id, provider_order_id as providerOrderId, status, activity_push_token as activityPushToken
-       FROM orders WHERE status != 'delivered'`,
+      `SELECT o.id, o.provider_order_id as providerOrderId, o.status, o.activity_push_token as activityPushToken,
+              o.user_id as userId, addr.provider_id as providerId, addr.provider_address_id as providerAddressId
+       FROM orders o
+       JOIN addresses addr ON addr.id = o.address_id
+       WHERE o.status != 'delivered'`,
     )
-    .all() as { id: string; providerOrderId: string; status: string; activityPushToken: string | null }[];
+    .all() as {
+    id: string;
+    providerOrderId: string;
+    status: OrderStatus;
+    activityPushToken: string | null;
+    userId: string;
+    providerId: string | null;
+    providerAddressId: string | null;
+  }[];
 
   for (const local of active) {
-    const result = await callKirana<ProviderOrder>("get_order_status", { orderId: local.providerOrderId });
-    if (!result.ok || !result.data) continue;
-    const remote = result.data;
+    const provider = providerById(local.providerId ?? "kirana-now");
+    if (!provider) continue;
+    const ctx: ProviderContext = { userId: local.userId, providerAddressId: local.providerAddressId ?? "" };
+
+    let remote: ProviderOrder;
+    try {
+      remote = await provider.getOrderStatus(ctx, local.providerOrderId);
+    } catch (err) {
+      console.error(`[order-poller] ${provider.id} status check failed for ${local.id}`, err);
+      continue;
+    }
     if (remote.status === local.status) continue;
 
     db.prepare("UPDATE orders SET status = ?, courier_distance_km = ? WHERE id = ?").run(
       remote.status,
-      remote.courierDistanceKm,
+      remote.courierDistanceKm ?? null,
       local.id,
     );
-    const newEvents = remote.events.filter((e) => !db.prepare("SELECT 1 FROM order_events WHERE order_id = ? AND type = ?").get(local.id, e.status));
-    for (const event of newEvents) {
+    for (const event of remote.events) {
+      const seen = db.prepare("SELECT 1 FROM order_events WHERE order_id = ? AND type = ?").get(local.id, event.status);
+      if (seen) continue;
       db.prepare("INSERT INTO order_events (id, order_id, type, label, at) VALUES (?, ?, ?, ?, ?)").run(
         randomUUID(),
         local.id,

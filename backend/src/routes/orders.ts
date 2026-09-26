@@ -3,8 +3,10 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { db } from "../db/index.js";
 import { requireAuth, type AuthedRequest } from "../services/auth.js";
-import { callKirana } from "../mcp/kiranaClient.js";
 import { createList, matchList } from "../services/listService.js";
+import { activeProviderForUser } from "../providers/registry.js";
+import { resolveProviderAddressId } from "../providers/addressResolution.js";
+import type { ProviderContext } from "../providers/types.js";
 
 export const ordersRouter = Router();
 
@@ -61,21 +63,18 @@ ordersRouter.post("/place/:listId", requireAuth, async (req: AuthedRequest, res)
     return;
   }
 
-  const placed = await callKirana<{
-    id: string;
-    total: number;
-    status: string;
-    courierName: string;
-    courierDistanceKm: number;
-    etaAt: string;
-    createdAt: string;
-  }>("place_order", { cartId: list.cartId });
-  if (!placed.ok || !placed.data) {
-    res.status(502).json({ error: "provider_unreachable", detail: placed.error });
+  let order;
+  try {
+    const provider = activeProviderForUser(req.userId!);
+    const providerAddressId = await resolveProviderAddressId(provider, req.userId!, list.addressId);
+    const ctx: ProviderContext = { userId: req.userId!, providerAddressId };
+    order = await provider.placeOrder(ctx, list.cartId);
+  } catch (err) {
+    res.status(502).json({ error: "provider_unreachable", detail: err instanceof Error ? err.message : String(err) });
     return;
   }
 
-  const order = placed.data;
+  const now = new Date().toISOString();
   db.prepare(
     `INSERT INTO orders (id, user_id, list_id, address_id, provider_order_id, status, total, courier_name,
        courier_distance_km, placed_at, eta_at)
@@ -88,18 +87,20 @@ ordersRouter.post("/place/:listId", requireAuth, async (req: AuthedRequest, res)
     order.id,
     order.status,
     order.total,
-    order.courierName,
-    order.courierDistanceKm,
-    order.createdAt,
-    order.etaAt,
+    order.courierName ?? null,
+    order.courierDistanceKm ?? null,
+    now,
+    order.etaAt ?? null,
   );
-  db.prepare("INSERT INTO order_events (id, order_id, type, label, at) VALUES (?, ?, ?, ?, ?)").run(
-    randomUUID(),
-    order.id,
-    "placed",
-    "Order placed",
-    order.createdAt,
-  );
+  for (const event of order.events) {
+    db.prepare("INSERT INTO order_events (id, order_id, type, label, at) VALUES (?, ?, ?, ?, ?)").run(
+      randomUUID(),
+      order.id,
+      event.status,
+      event.label,
+      event.at,
+    );
+  }
 
   res.status(201).json({ id: order.id, status: order.status, total: order.total, etaAt: order.etaAt });
 });
