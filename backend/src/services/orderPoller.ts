@@ -4,22 +4,25 @@ import { providerById } from "../providers/registry.js";
 import type { OrderStatus, ProviderContext, ProviderOrder } from "../providers/types.js";
 import { pushProvider, type LiveActivityContentState } from "./apns.js";
 
-const ETA_LABELS: Record<OrderStatus, string> = {
-  placed: "Order placed",
-  packed: "Packed",
-  on_the_way: "On the way",
-  delivered: "Delivered",
-};
-
-function contentState(order: ProviderOrder): LiveActivityContentState {
-  return { status: ETA_LABELS[order.status], etaText: order.etaAt ? new Date(order.etaAt).toLocaleTimeString() : "" };
+function contentState(order: ProviderOrder, itemCount: number, total: number): LiveActivityContentState {
+  return {
+    stage: order.status,
+    etaText: order.etaAt ? new Date(order.etaAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "",
+    etaAtISO: order.etaAt,
+    courierName: order.courierName,
+    courierDistanceKm: order.courierDistanceKm,
+    itemCount,
+    total,
+  };
 }
 
 async function pollOnce() {
   const active = db
     .prepare(
       `SELECT o.id, o.provider_order_id as providerOrderId, o.status, o.activity_push_token as activityPushToken,
-              o.user_id as userId, addr.provider_id as providerId, addr.provider_address_id as providerAddressId
+              o.user_id as userId, o.total as total, o.list_id as listId,
+              addr.provider_id as providerId, addr.provider_address_id as providerAddressId,
+              (SELECT count(*) FROM order_items oi WHERE oi.list_id = o.list_id AND oi.status != 'rejected') as itemCount
        FROM orders o
        JOIN addresses addr ON addr.id = o.address_id
        WHERE o.status != 'delivered'`,
@@ -30,8 +33,11 @@ async function pollOnce() {
     status: OrderStatus;
     activityPushToken: string | null;
     userId: string;
+    total: number;
+    listId: string;
     providerId: string | null;
     providerAddressId: string | null;
+    itemCount: number;
   }[];
 
   for (const local of active) {
@@ -66,10 +72,11 @@ async function pollOnce() {
     }
 
     if (local.activityPushToken) {
+      const state = contentState(remote, local.itemCount, local.total);
       if (remote.status === "delivered") {
-        await pushProvider.sendLiveActivityEnd(local.activityPushToken, contentState(remote));
+        await pushProvider.sendLiveActivityEnd(local.activityPushToken, state);
       } else {
-        await pushProvider.sendLiveActivityUpdate(local.activityPushToken, contentState(remote), 30 * 60);
+        await pushProvider.sendLiveActivityUpdate(local.activityPushToken, state, 30 * 60);
       }
     }
   }

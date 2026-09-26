@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import ActivityKit
 
 @main
 struct PantryWidgetBundle: WidgetBundle {
@@ -8,23 +9,37 @@ struct PantryWidgetBundle: WidgetBundle {
     }
 }
 
-/// Placeholder Live Activity — built out at milestone 10 to match
-/// canvas screens 5.1 (Lock Screen) and 5.2 (Dynamic Island).
+/// Canvas 5.1 (Lock Screen) and 5.2 (Dynamic Island compact/minimal/expanded).
 struct PantryOrderLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: PantryOrderActivityAttributes.self) { context in
-            Text(context.state.status)
+            LiveActivityCard(attributes: context.attributes, state: context.state)
+                .padding(18)
+                .activityBackgroundTint(Theme.darkSurface)
+                .activitySystemActionForegroundColor(Color.white)
         } dynamicIsland: { context in
             DynamicIsland {
+                DynamicIslandExpandedRegion(.leading) {
+                    SealMark(size: 30, background: Theme.accent)
+                }
+                DynamicIslandExpandedRegion(.trailing) {
+                    CompactEta(state: context.state)
+                        .frame(width: 60)
+                }
                 DynamicIslandExpandedRegion(.center) {
-                    Text(context.state.status)
+                    Text(PantryOrderStage(rawValue: context.state.stage)?.label ?? "")
+                        .font(.mono(15, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+                DynamicIslandExpandedRegion(.bottom) {
+                    LiveActivityBody(state: context.state, showCallButtons: true)
                 }
             } compactLeading: {
-                Text("母")
+                SealMark(size: 22, cornerRadius: 6, background: Theme.accent)
             } compactTrailing: {
-                Text(context.state.etaText)
+                CompactEta(state: context.state)
             } minimal: {
-                Text("母")
+                SealMark(size: 20, cornerRadius: 6, background: Theme.accent)
             }
         }
     }

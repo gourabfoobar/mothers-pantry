@@ -23,6 +23,8 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>Mother's Pantry uses notifications to ask you to approve uncertain items and to show live delivery updates on the Lock Screen.</string>
 	<key>UIAppFonts</key>

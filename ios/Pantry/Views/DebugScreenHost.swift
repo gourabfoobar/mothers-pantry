@@ -54,6 +54,7 @@ struct DebugScreenHost: View {
         case "Approvals": ApprovalsCoordinatorView(listId: seededListId ?? "missing-list", path: $path)
         case "Checkout": CheckoutView(listId: seededListId ?? "missing-list", path: $path)
         case "Placed": PlacedView(orderId: seededOrderId ?? "missing-order", path: $path)
+        case "Tracking": TrackingView(orderId: seededOrderId ?? "missing-order", path: $path)
         default: Text("Unknown debug screen: \(screen)")
         }
     }
@@ -73,7 +74,7 @@ struct DebugScreenHost: View {
         case .matching(let listId): MatchingView(listId: listId, path: $path)
         case .review(let listId): ReviewView(listId: listId, path: $path)
         case .orderDetail: ComingSoonView(title: "Order detail", milestone: 11)
-        case .tracking: ComingSoonView(title: "Track order", milestone: 10)
+        case .tracking(let orderId): TrackingView(orderId: orderId, path: $path)
         case .approvals(let listId): ApprovalsCoordinatorView(listId: listId, path: $path)
         case .checkout(let listId): CheckoutView(listId: listId, path: $path)
         case .placed(let orderId): PlacedView(orderId: orderId, path: $path)
@@ -121,6 +122,9 @@ struct DebugScreenHost: View {
                             if let order = try? await APIClient.shared.placeOrder(listId: listId) {
                                 seededOrderId = order.id
                                 NSLog("[debug autologin] order placed: \(order.id)")
+                                let providerName = (try? await APIClient.shared.providerConnection())?.providerName ?? ""
+                                LiveActivityService.start(orderId: order.id, providerName: providerName, etaAtISO: order.etaAt)
+                                NSLog("[debug autologin] live activity start requested")
                             } else {
                                 NSLog("[debug autologin] placeOrder FAILED")
                             }

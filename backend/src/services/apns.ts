@@ -2,9 +2,15 @@ import http2 from "node:http2";
 import jwt from "jsonwebtoken";
 import { readFileSync } from "node:fs";
 
+/** Must match Shared/PantryOrderActivityAttributes.swift's ContentState field-for-field. */
 export interface LiveActivityContentState {
-  status: string; // matches PantryOrderActivityAttributes.ContentState.status on the client
+  stage: string; // "placed" | "packed" | "on_the_way" | "delivered"
   etaText: string;
+  etaAtISO?: string;
+  courierName?: string;
+  courierDistanceKm?: number;
+  itemCount: number;
+  total: number;
 }
 
 export interface PushProvider {

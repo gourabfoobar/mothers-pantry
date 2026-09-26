@@ -32,6 +32,7 @@ targets:
         UIAppFonts:
           - JetBrainsMono.ttf
           - ShipporiMincho-Bold.ttf
+        NSSupportsLiveActivities: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.motherspantry.app
@@ -51,6 +52,7 @@ targets:
       - path: PantryWidget
       - path: Shared
       - path: Pantry/Resources/Fonts
+      - path: Pantry/DesignSystem
     info:
       path: PantryWidget/Info.plist
       properties:

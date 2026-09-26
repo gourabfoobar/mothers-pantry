@@ -155,6 +155,7 @@ struct CheckoutView: View {
         Task {
             do {
                 let order = try await APIClient.shared.placeOrder(listId: listId)
+                LiveActivityService.start(orderId: order.id, providerName: providerName, etaAtISO: order.etaAt)
                 isPlacing = false
                 path.append(.placed(orderId: order.id))
             } catch {
