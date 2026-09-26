@@ -1,4 +1,13 @@
 .derivedData/
+DerivedData/
 __pycache__/
 *.pyc
-Demo/*.mp4
+.DS_Store
+node_modules/
+dist/
+*.xcuserstate
+xcuserdata/
+ios/Pantry.xcodeproj/project.xcworkspace/
+ios/Pantry.xcodeproj/xcuserdata/
+backend/*.sqlite
+kirana-now/*.sqlite
