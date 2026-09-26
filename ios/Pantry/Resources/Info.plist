@@ -25,6 +25,11 @@
 	</dict>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>Mother's Pantry uses notifications to ask you to approve uncertain items and to show live delivery updates on the Lock Screen.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>JetBrainsMono.ttf</string>
+		<string>ShipporiMincho-Bold.ttf</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

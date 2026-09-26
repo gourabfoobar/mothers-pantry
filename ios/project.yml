@@ -29,6 +29,9 @@ targets:
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         NSUserNotificationsUsageDescription: "Mother's Pantry uses notifications to ask you to approve uncertain items and to show live delivery updates on the Lock Screen."
+        UIAppFonts:
+          - JetBrainsMono.ttf
+          - ShipporiMincho-Bold.ttf
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.motherspantry.app
@@ -47,12 +50,16 @@ targets:
     sources:
       - path: PantryWidget
       - path: Shared
+      - path: Pantry/Resources/Fonts
     info:
       path: PantryWidget/Info.plist
       properties:
         CFBundleDisplayName: "Pantry Widget"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
+        UIAppFonts:
+          - JetBrainsMono.ttf
+          - ShipporiMincho-Bold.ttf
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.motherspantry.app.PantryWidget

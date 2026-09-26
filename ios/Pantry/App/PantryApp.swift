@@ -17,7 +17,7 @@ struct PantryApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ScaffoldPlaceholderView()
+            RootView()
                 .environment(appState)
         }
         .modelContainer(sharedModelContainer)
