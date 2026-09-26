@@ -107,6 +107,9 @@ struct NameView: View {
                     email: email.isEmpty ? nil : email,
                     notificationsEnabled: notificationsEnabled
                 )
+                if notificationsEnabled {
+                    await NotificationService.requestAuthorization()
+                }
                 isSaving = false
                 path.append(.providerPicker)
             } catch {

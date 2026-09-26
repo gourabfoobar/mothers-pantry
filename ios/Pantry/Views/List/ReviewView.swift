@@ -62,7 +62,7 @@ struct ReviewView: View {
                         Text("₹ \(Int(review.total))").font(.mono(14, weight: .medium)).foregroundStyle(Theme.ink)
                     }
                     Button {
-                        path.append(.checkoutFlow(listId: listId))
+                        path.append(needsItems.isEmpty ? .checkout(listId: listId) : .approvals(listId: listId))
                     } label: {
                         Text(needsItems.isEmpty ? "Continue to checkout" : "Review \(needsItems.count) item\(needsItems.count == 1 ? "" : "s")")
                     }

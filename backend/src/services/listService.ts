@@ -86,7 +86,12 @@ export async function matchList(listId: string) {
   db.prepare("UPDATE grocery_lists SET matched_at = ? WHERE id = ?").run(new Date().toISOString(), list.id);
 }
 
-export function buildReview(listId: string) {
+/**
+ * The full ReviewItem shape (matching the iOS DTO exactly) for every line in
+ * a list — shared by the Review screen and the cart/checkout endpoints so
+ * they never drift out of sync with each other again.
+ */
+export function reviewItemsForList(listId: string) {
   const items = db
     .prepare(
       `SELECT oi.id, oi.line_id as lineId, ll.raw_text as rawText, oi.catalog_item_id as catalogItemId,
@@ -98,7 +103,7 @@ export function buildReview(listId: string) {
     )
     .all(listId) as any[];
 
-  const candidatesByLine = items.map((item) => ({
+  return items.map((item) => ({
     ...item,
     roundedDown: Boolean(item.roundedDown),
     candidates: db
@@ -108,11 +113,15 @@ export function buildReview(listId: string) {
       )
       .all(item.lineId),
   }));
+}
 
-  const matchedCount = candidatesByLine.filter((i) => i.status === "approved" && !i.roundedDown).length;
-  const needsCount = candidatesByLine.filter((i) => i.status === "needs_match" || i.status === "needs_qty").length;
-  const roundedDownCount = candidatesByLine.filter((i) => i.roundedDown).length;
-  const total = candidatesByLine.reduce((sum, i) => sum + (i.lineTotal ?? 0), 0);
+export function buildReview(listId: string) {
+  const items = reviewItemsForList(listId);
 
-  return { itemCount: candidatesByLine.length, matchedCount, needsCount, roundedDownCount, total, items: candidatesByLine };
+  const matchedCount = items.filter((i) => i.status === "approved" && !i.roundedDown).length;
+  const needsCount = items.filter((i) => i.status === "needs_match" || i.status === "needs_qty").length;
+  const roundedDownCount = items.filter((i) => i.roundedDown).length;
+  const total = items.reduce((sum, i) => sum + (i.lineTotal ?? 0), 0);
+
+  return { itemCount: items.length, matchedCount, needsCount, roundedDownCount, total, items };
 }

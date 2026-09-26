@@ -54,8 +54,14 @@ struct MainShellView: View {
             ReviewView(listId: listId, path: path)
         case .orderDetail:
             ComingSoonView(title: "Order detail", milestone: 11)
-        case .checkoutFlow:
-            ComingSoonView(title: "Approvals & checkout", milestone: 9)
+        case .tracking:
+            ComingSoonView(title: "Track order", milestone: 10)
+        case .approvals(let listId):
+            ApprovalsCoordinatorView(listId: listId, path: path)
+        case .checkout(let listId):
+            CheckoutView(listId: listId, path: path)
+        case .placed(let orderId):
+            PlacedView(orderId: orderId, path: path)
         }
     }
 }

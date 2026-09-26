@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { db } from "../db/index.js";
 import { requireAuth, type AuthedRequest } from "../services/auth.js";
-import { createList, matchList } from "../services/listService.js";
+import { createList, matchList, reviewItemsForList } from "../services/listService.js";
 import { activeProviderForUser } from "../providers/registry.js";
 import { resolveProviderAddressId } from "../providers/addressResolution.js";
 import type { ProviderContext } from "../providers/types.js";
@@ -17,13 +17,7 @@ function loadList(listId: string, userId: string) {
 }
 
 function activeItems(listId: string) {
-  return db
-    .prepare(
-      `SELECT id, catalog_item_name as name, requested_qty as requestedQty, requested_unit as requestedUnit,
-              approved_qty as approvedQty, line_total as lineTotal, status, rounded_down as roundedDown
-       FROM order_items WHERE list_id = ? AND status != 'rejected' ORDER BY position`,
-    )
-    .all(listId) as any[];
+  return reviewItemsForList(listId).filter((i) => i.status !== "rejected");
 }
 
 /** Checkout only unlocks once every non-rejected item is approved (canvas note 4). */

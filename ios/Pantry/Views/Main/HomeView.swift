@@ -80,7 +80,7 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("ON THE WAY").font(.mono(13)).tracking(1).foregroundStyle(Theme.secondaryText)
                         Button {
-                            path.append(.orderDetail(orderId: activeOrder.id))
+                            path.append(.tracking(orderId: activeOrder.id))
                         } label: {
                             HStack(spacing: 14) {
                                 ZStack {
