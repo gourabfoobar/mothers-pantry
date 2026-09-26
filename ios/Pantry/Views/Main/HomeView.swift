@@ -142,14 +142,14 @@ struct HomeView: View {
     }
 
     private func formatETA(_ iso: String) -> String {
-        guard let date = ISO8601DateFormatter().date(from: iso) else { return "Arriving soon" }
+        guard let date = iso.asISODate else { return "Arriving soon" }
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
         return "Arriving \(formatter.string(from: date))"
     }
 
     private func formatDate(_ iso: String) -> String {
-        guard let date = ISO8601DateFormatter().date(from: iso) else { return iso }
+        guard let date = iso.asISODate else { return iso }
         let formatter = DateFormatter()
         formatter.dateFormat = "d MMMM"
         return formatter.string(from: date)

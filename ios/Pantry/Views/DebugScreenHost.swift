@@ -55,6 +55,9 @@ struct DebugScreenHost: View {
         case "Checkout": CheckoutView(listId: seededListId ?? "missing-list", path: $path)
         case "Placed": PlacedView(orderId: seededOrderId ?? "missing-order", path: $path)
         case "Tracking": TrackingView(orderId: seededOrderId ?? "missing-order", path: $path)
+        case "History": HistoryView(path: $path)
+        case "OrderDetail": OrderDetailView(orderId: seededOrderId ?? "missing-order", path: $path)
+        case "Account": AccountView()
         default: Text("Unknown debug screen: \(screen)")
         }
     }
@@ -73,7 +76,7 @@ struct DebugScreenHost: View {
         case .paste(let addressId): PasteView(addressId: addressId, path: $path)
         case .matching(let listId): MatchingView(listId: listId, path: $path)
         case .review(let listId): ReviewView(listId: listId, path: $path)
-        case .orderDetail: ComingSoonView(title: "Order detail", milestone: 11)
+        case .orderDetail(let orderId): OrderDetailView(orderId: orderId, path: $path)
         case .tracking(let orderId): TrackingView(orderId: orderId, path: $path)
         case .approvals(let listId): ApprovalsCoordinatorView(listId: listId, path: $path)
         case .checkout(let listId): CheckoutView(listId: listId, path: $path)

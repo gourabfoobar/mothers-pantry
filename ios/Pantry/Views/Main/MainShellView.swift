@@ -19,13 +19,13 @@ struct MainShellView: View {
                 }
                 tab(.orders) {
                     NavigationStack(path: $ordersPath) {
-                        ComingSoonView(title: "Order history", milestone: 11)
+                        HistoryView(path: $ordersPath)
                             .navigationDestination(for: AppRoute.self) { destination(for: $0, path: $ordersPath) }
                     }
                 }
                 tab(.account) {
                     NavigationStack(path: $accountPath) {
-                        ComingSoonView(title: "Account", milestone: 11)
+                        AccountView()
                             .navigationDestination(for: AppRoute.self) { destination(for: $0, path: $accountPath) }
                     }
                 }
@@ -52,8 +52,8 @@ struct MainShellView: View {
             MatchingView(listId: listId, path: path)
         case .review(let listId):
             ReviewView(listId: listId, path: path)
-        case .orderDetail:
-            ComingSoonView(title: "Order detail", milestone: 11)
+        case .orderDetail(let orderId):
+            OrderDetailView(orderId: orderId, path: path)
         case .tracking(let orderId):
             TrackingView(orderId: orderId, path: path)
         case .approvals(let listId):

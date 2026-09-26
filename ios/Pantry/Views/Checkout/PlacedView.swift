@@ -78,7 +78,7 @@ struct PlacedView: View {
     }
 
     private var etaText: String {
-        guard let iso = order?.etaAt, let date = ISO8601DateFormatter().date(from: iso) else { return "Arriving today." }
+        guard let iso = order?.etaAt, let date = iso.asISODate else { return "Arriving today." }
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
         return "Arriving today, \(formatter.string(from: date))."

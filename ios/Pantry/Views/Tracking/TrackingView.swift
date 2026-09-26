@@ -99,7 +99,7 @@ struct TrackingView: View {
     }
 
     private func formatTime(_ iso: String) -> String {
-        guard let date = ISO8601DateFormatter().date(from: iso) else { return "" }
+        guard let date = iso.asISODate else { return "" }
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm"
         let ampm = DateFormatter()
@@ -192,7 +192,7 @@ private struct TimelineView: View {
 }
 
 private func formatShortTime(_ iso: String) -> String {
-    guard let date = ISO8601DateFormatter().date(from: iso) else { return "" }
+    guard let date = iso.asISODate else { return "" }
     let formatter = DateFormatter()
     formatter.dateFormat = "h:mm a"
     return formatter.string(from: date).lowercased()
