@@ -17,7 +17,7 @@ struct OtpView: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 24) {
-                ScreenHeader(label: "Sign in") { path.removeLast() }
+                ScreenHeader(label: "Sign in") { path.safePop() }
 
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Enter the code")
@@ -27,7 +27,7 @@ struct OtpView: View {
                         Text("Sent to")
                         Text(phone).foregroundStyle(Theme.ink)
                         Text("· Change").foregroundStyle(Theme.accentText)
-                            .onTapGesture { path.removeLast() }
+                            .onTapGesture { path.safePop() }
                     }
                     .font(.mono(14))
                     .foregroundStyle(Theme.secondaryText)

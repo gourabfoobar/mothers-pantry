@@ -13,7 +13,7 @@ struct ProviderPickerView: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 22) {
-                ScreenHeader(label: "Store") { path.removeLast() }
+                ScreenHeader(label: "Store") { path.safePop() }
 
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Where do you shop for Ma?")

@@ -14,7 +14,7 @@ struct NameView: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 24) {
-                ScreenHeader(label: "Almost there") { path.removeLast() }
+                ScreenHeader(label: "Almost there") { path.safePop() }
 
                 VStack(alignment: .leading, spacing: 10) {
                     Text("What should we call you?")

@@ -13,7 +13,7 @@ struct PhoneView: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 24) {
-                ScreenHeader(label: "Sign in") { path.removeLast() }
+                ScreenHeader(label: "Sign in") { path.safePop() }
 
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Your phone number")

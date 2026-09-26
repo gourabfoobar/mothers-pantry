@@ -19,7 +19,7 @@ struct RootView: View {
 
     @ViewBuilder private var signedInSwitch: some View {
         if appState.isSignedIn {
-            ComingSoonView(title: "Ma's pantry (Home)", milestone: 8)
+            MainShellView()
         } else {
             WelcomeView()
         }

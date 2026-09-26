@@ -100,6 +100,7 @@ export function buildReview(listId: string) {
 
   const candidatesByLine = items.map((item) => ({
     ...item,
+    roundedDown: Boolean(item.roundedDown),
     candidates: db
       .prepare(
         `SELECT catalog_item_id as catalogItemId, catalog_item_name as name, confidence, reason, price

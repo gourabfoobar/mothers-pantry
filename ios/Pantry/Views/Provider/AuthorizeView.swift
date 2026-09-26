@@ -15,7 +15,7 @@ struct AuthorizeView: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 20) {
-                ScreenHeader(label: "Connect") { path.removeLast() }
+                ScreenHeader(label: "Connect") { path.safePop() }
 
                 HStack(spacing: 14) {
                     SealMark(size: 56)

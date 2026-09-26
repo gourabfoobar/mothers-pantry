@@ -1,0 +1,65 @@
+import SwiftUI
+
+/// The signed-in app: three tabs, each with its own navigation stack, plus
+/// the shared bottom nav bar (canvas rows 03-06).
+struct MainShellView: View {
+    @State private var selection: MainTab = .home
+    @State private var homePath: [AppRoute] = []
+    @State private var ordersPath: [AppRoute] = []
+    @State private var accountPath: [AppRoute] = []
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ZStack {
+                tab(.home) {
+                    NavigationStack(path: $homePath) {
+                        HomeView(path: $homePath, onAccountTap: { selection = .account })
+                            .navigationDestination(for: AppRoute.self) { destination(for: $0, path: $homePath) }
+                    }
+                }
+                tab(.orders) {
+                    NavigationStack(path: $ordersPath) {
+                        ComingSoonView(title: "Order history", milestone: 11)
+                            .navigationDestination(for: AppRoute.self) { destination(for: $0, path: $ordersPath) }
+                    }
+                }
+                tab(.account) {
+                    NavigationStack(path: $accountPath) {
+                        ComingSoonView(title: "Account", milestone: 11)
+                            .navigationDestination(for: AppRoute.self) { destination(for: $0, path: $accountPath) }
+                    }
+                }
+            }
+            BottomNavBar(selection: $selection)
+        }
+        .background(Theme.background)
+        .ignoresSafeArea(edges: .bottom)
+    }
+
+    @ViewBuilder
+    private func tab(_ tab: MainTab, @ViewBuilder content: () -> some View) -> some View {
+        content().opacity(selection == tab ? 1 : 0).allowsHitTesting(selection == tab)
+    }
+
+    @ViewBuilder
+    private func destination(for route: AppRoute, path: Binding<[AppRoute]>) -> some View {
+        switch route {
+        case .address:
+            AddressView(path: path)
+        case .paste(let addressId):
+            PasteView(addressId: addressId, path: path)
+        case .matching(let listId):
+            MatchingView(listId: listId, path: path)
+        case .review(let listId):
+            ReviewView(listId: listId, path: path)
+        case .orderDetail:
+            ComingSoonView(title: "Order detail", milestone: 11)
+        case .checkoutFlow:
+            ComingSoonView(title: "Approvals & checkout", milestone: 9)
+        }
+    }
+}
+
+#Preview {
+    MainShellView().environment(AppState())
+}

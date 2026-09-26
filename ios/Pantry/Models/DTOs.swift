@@ -88,13 +88,6 @@ struct MatchCandidateDTO: Decodable, Identifiable, Hashable {
     var id: String { catalogItemId + name }
 }
 
-struct PackAllocationDTO: Decodable, Hashable {
-    let size: Double
-    let unit: String
-    let count: Int
-    let price: Double
-}
-
 struct ReviewItem: Decodable, Identifiable, Hashable {
     let id: String
     let lineId: String
@@ -104,7 +97,8 @@ struct ReviewItem: Decodable, Identifiable, Hashable {
     let requestedQty: Double
     let requestedUnit: String
     let approvedQty: Double?
-    let packs: [PackAllocationDTO]
+    /// Human-readable pack breakdown from the provider, e.g. "2 × 2 kg" — empty when the provider has no pack concept.
+    let packDescription: String?
     let lineTotal: Double?
     let status: String // needs_match | needs_qty | approved | rejected
     let roundedDown: Bool

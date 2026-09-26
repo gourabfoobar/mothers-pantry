@@ -9,8 +9,8 @@ export const recipientsRouter = Router();
 recipientsRouter.get("/", requireAuth, (req: AuthedRequest, res) => {
   const rows = db
     .prepare("SELECT id, name, relation, phone, may_call as mayCall FROM recipients WHERE user_id = ? ORDER BY created_at")
-    .all(req.userId!);
-  res.json(rows);
+    .all(req.userId!) as { mayCall: number }[];
+  res.json(rows.map((row) => ({ ...row, mayCall: Boolean(row.mayCall) })));
 });
 
 const createSchema = z.object({
