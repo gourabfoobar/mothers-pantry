@@ -63,6 +63,8 @@ CREATE TABLE IF NOT EXISTS grocery_lists (
   address_id TEXT NOT NULL REFERENCES addresses(id),
   raw_text TEXT NOT NULL,
   cart_id TEXT,
+  greeting_count INTEGER NOT NULL DEFAULT 0,
+  matched_at TEXT,
   created_at TEXT NOT NULL
 );
 
@@ -93,14 +95,12 @@ CREATE TABLE IF NOT EXISTS order_items (
   catalog_item_name TEXT,
   requested_qty REAL NOT NULL,
   requested_unit TEXT NOT NULL,
-  approved_qty REAL,
-  pack_size REAL,
-  pack_unit TEXT,
-  pack_count INTEGER,
-  unit_price REAL,
+  approved_qty REAL, -- the allocated/fulfilled quantity, set as soon as matching resolves a candidate; `status` tracks whether the user has actually approved it
+  packs_json TEXT,
   line_total REAL,
   status TEXT NOT NULL DEFAULT 'needs_match',
-  rounded_down INTEGER NOT NULL DEFAULT 0
+  rounded_down INTEGER NOT NULL DEFAULT 0,
+  position INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS orders (

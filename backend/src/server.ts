@@ -6,6 +6,8 @@ import { providersRouter } from "./routes/providers.js";
 import { recipientsRouter } from "./routes/recipients.js";
 import { addressesRouter } from "./routes/addresses.js";
 import { devicesRouter } from "./routes/devices.js";
+import { listsRouter } from "./routes/lists.js";
+import { matchesRouter, qtyRouter } from "./routes/matches.js";
 
 const app = express();
 app.use(cors());
@@ -18,6 +20,9 @@ app.use("/providers", providersRouter);
 app.use("/recipients", recipientsRouter);
 app.use("/addresses", addressesRouter);
 app.use("/devices", devicesRouter);
+app.use("/lists", listsRouter);
+app.use("/matches", matchesRouter);
+app.use("/qty", qtyRouter);
 
 const port = Number(process.env.PORT ?? 4200);
 app.listen(port, () => {

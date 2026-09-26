@@ -36,5 +36,31 @@ downstream talks to it yet.
 ## Data
 
 SQLite via `better-sqlite3`, schema in `src/db/schema.sql`, applied on boot.
-Tables for lists/matching/cart/orders already exist in the schema; the
-matching, cart, checkout and order routes that use them land in milestones 3–4.
+
+## Lists, matching & approvals (milestone 3)
+
+`POST /lists` parses pasted text with `ListParser` (`src/services/parser.ts`) —
+`ClaudeListParser` when `ANTHROPIC_API_KEY` is set, otherwise a regex
+`HeuristicListParser` so the whole flow works offline. `POST /lists/:id/match`
+runs each parsed item through `src/services/matcher.ts`:
+
+1. `search_products` on kirana-now, ranked by alias match.
+2. A **tied top score** (e.g. "kalo jeera" matching both nigella seeds and
+   black cumin equally) → `needs_match`, both candidates returned.
+3. A **requested unit kirana-now can't map without guessing** (e.g. "2
+   bundle") → confidence penalty → `needs_match`.
+4. Either way, `update_cart_item` always runs for the best-guess candidate —
+   **a rounded-down allocation always requires approval** (`needs_qty`),
+   overriding an otherwise-confident match.
+
+`POST /matches/:id/approve|reject` and `POST /qty/:id/approve|reject` resolve
+an item (optionally switching to an alternate candidate); `GET
+/lists/:id/review` returns the same shape the Review screen needs. Verified
+against Ma's exact sample list (`npx tsx src/smoke-test-match.ts` once both
+servers are running) — atta 5 kg asked → 4 kg / ₹236 via 2×2 kg, and the
+"kalo jeera" ambiguity surfaces both candidates, matching the canvas exactly.
+`npx tsx src/smoke-test-approve.ts` covers approving a rounded-down qty,
+switching a match to an alternate candidate, and rejecting a line.
+
+Tables for cart/checkout/orders already exist in the schema; the routes that
+use them land in milestone 4.
