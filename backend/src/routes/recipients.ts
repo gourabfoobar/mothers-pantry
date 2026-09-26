@@ -9,7 +9,7 @@ export const recipientsRouter = Router();
 recipientsRouter.get("/", requireAuth, (req: AuthedRequest, res) => {
   const rows = db
     .prepare("SELECT id, name, relation, phone, may_call as mayCall FROM recipients WHERE user_id = ? ORDER BY created_at")
-    .all(req.userId);
+    .all(req.userId!);
   res.json(rows);
 });
 
@@ -30,6 +30,6 @@ recipientsRouter.post("/", requireAuth, (req: AuthedRequest, res) => {
   const id = randomUUID();
   db.prepare(
     "INSERT INTO recipients (id, user_id, name, relation, phone, may_call, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-  ).run(id, req.userId, name, relation ?? null, phone ?? null, mayCall === false ? 0 : 1, new Date().toISOString());
+  ).run(id, req.userId!, name, relation ?? null, phone ?? null, mayCall === false ? 0 : 1, new Date().toISOString());
   res.status(201).json({ id, name, relation, phone, mayCall: mayCall !== false });
 });

@@ -12,7 +12,7 @@ addressesRouter.get("/", requireAuth, (req: AuthedRequest, res) => {
       `SELECT id, recipient_id as recipientId, label, line1, city, pincode
        FROM addresses WHERE user_id = ? ORDER BY created_at`,
     )
-    .all(req.userId);
+    .all(req.userId!);
   res.json(rows);
 });
 
@@ -35,6 +35,6 @@ addressesRouter.post("/", requireAuth, (req: AuthedRequest, res) => {
   db.prepare(
     `INSERT INTO addresses (id, user_id, recipient_id, label, line1, city, pincode, created_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-  ).run(id, req.userId, recipientId ?? null, label, line1, city ?? null, pincode ?? null, new Date().toISOString());
+  ).run(id, req.userId!, recipientId ?? null, label, line1, city ?? null, pincode ?? null, new Date().toISOString());
   res.status(201).json({ id, recipientId, label, line1, city, pincode });
 });

@@ -35,7 +35,11 @@ downstream talks to it yet.
 
 ## Data
 
-SQLite via `better-sqlite3`, schema in `src/db/schema.sql`, applied on boot.
+SQLite via Node's built-in `node:sqlite` (`DatabaseSync`), schema in
+`src/db/schema.sql`, applied on boot. (`better-sqlite3`'s prebuilt native
+binding crashes under Node 24's GC/module-evaluation timing on this machine —
+`node:sqlite` has the same `prepare/get/all/run` shape and needed no query
+changes beyond typing `req.userId!` past `requireAuth`.)
 
 ## Lists, matching & approvals (milestone 3)
 
@@ -62,5 +66,33 @@ servers are running) — atta 5 kg asked → 4 kg / ₹236 via 2×2 kg, and the
 `npx tsx src/smoke-test-approve.ts` covers approving a rounded-down qty,
 switching a match to an alternate candidate, and rejecting a line.
 
-Tables for cart/checkout/orders already exist in the schema; the routes that
-use them land in milestone 4.
+## Cart, checkout, orders & push (milestone 4)
+
+- `GET /orders/cart/:listId` — the checkout payload; `ready` is only true once
+  every non-rejected item is `approved` (canvas note 4: "Checkout unlocks
+  once every item is approved or removed").
+- `POST /orders/place/:listId` — 409s if anything is unresolved, otherwise
+  calls kirana-now's `place_order` and creates the local `orders` row.
+- `POST /orders/:id/activity-token` — the iOS app posts its Live Activity's
+  push-to-update token here once it starts the Activity.
+- `GET /orders`, `GET /orders/:id`, `POST /orders/:id/reorder` (re-runs
+  matching against today's stock, sharing `src/services/listService.ts` with
+  the initial `POST /lists/:id/match`).
+
+`src/services/orderPoller.ts` polls kirana-now's `get_order_status` every
+`ORDER_POLL_INTERVAL_MS` (default 5s) for every non-delivered order, records
+new `order_events`, and pushes an ActivityKit update through
+`src/services/apns.ts` whenever status changes — `end` on delivery, `update`
+otherwise. `src/services/notifications.ts` fires one actionable notification
+per item that needs a look right after matching, matching canvas 4.1's Lock
+Screen (a separate card per approval, not one digest).
+
+`apns.ts` is a real HTTP/2 client (ES256 provider-token auth, correct
+`apns-push-type`/`apns-topic` headers for both `liveactivity` and `alert`)
+that talks to Apple when `APNS_KEY_ID`/`APNS_TEAM_ID`/`APNS_KEY_PATH`/
+`APNS_BUNDLE_ID` are set, and otherwise logs the payload — same pattern as
+`SmsProvider` and `ListParser`.
+
+`npx tsx src/smoke-test-order.ts` (with both servers running) drives a full
+signup → connect → list → auto-match → cart-gate → place → poll-to-"packed"
+run against the real kirana-now timer.

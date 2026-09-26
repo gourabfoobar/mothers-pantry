@@ -23,6 +23,6 @@ devicesRouter.post("/register", requireAuth, (req: AuthedRequest, res) => {
   db.prepare(
     `INSERT INTO devices (id, user_id, push_token, activity_push_to_start_token, registered_at)
      VALUES (?, ?, ?, ?, ?)`,
-  ).run(id, req.userId, pushToken ?? null, activityPushToStartToken ?? null, new Date().toISOString());
+  ).run(id, req.userId!, pushToken ?? null, activityPushToStartToken ?? null, new Date().toISOString());
   res.status(201).json({ id });
 });

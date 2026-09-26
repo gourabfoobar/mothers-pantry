@@ -48,7 +48,7 @@ providersRouter.post("/:id/authorize", requireAuth, async (req: AuthedRequest, r
   db.prepare(
     `INSERT INTO provider_connections (id, user_id, provider_id, access_token, nearest_store_id, nearest_store_name, connected_at)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
-  ).run(id, req.userId, providerId, `demo-token-${id}`, storeId, storeName, connectedAt);
+  ).run(id, req.userId!, providerId, `demo-token-${id}`, storeId, storeName, connectedAt);
 
   res.json({ id, providerId, providerName: provider.name, storeId, storeName, connectedAt });
 });
@@ -56,7 +56,7 @@ providersRouter.post("/:id/authorize", requireAuth, async (req: AuthedRequest, r
 providersRouter.get("/connection", requireAuth, (req: AuthedRequest, res) => {
   const row = db
     .prepare("SELECT * FROM provider_connections WHERE user_id = ? ORDER BY connected_at DESC LIMIT 1")
-    .get(req.userId) as
+    .get(req.userId!) as
     | {
         id: string;
         provider_id: string;

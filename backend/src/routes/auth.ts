@@ -93,17 +93,17 @@ authRouter.post("/profile", requireAuth, (req: AuthedRequest, res) => {
     name,
     email ?? null,
     notificationsEnabled === false ? 0 : 1,
-    req.userId,
+    req.userId!,
   );
   const user = db.prepare("SELECT id, phone, name, email, notifications_enabled FROM users WHERE id = ?").get(
-    req.userId,
+    req.userId!,
   );
   res.json(user);
 });
 
 authRouter.get("/me", requireAuth, (req: AuthedRequest, res) => {
   const user = db.prepare("SELECT id, phone, name, email, notifications_enabled FROM users WHERE id = ?").get(
-    req.userId,
+    req.userId!,
   );
   if (!user) {
     res.status(404).json({ error: "not_found" });

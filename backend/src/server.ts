@@ -8,6 +8,8 @@ import { addressesRouter } from "./routes/addresses.js";
 import { devicesRouter } from "./routes/devices.js";
 import { listsRouter } from "./routes/lists.js";
 import { matchesRouter, qtyRouter } from "./routes/matches.js";
+import { ordersRouter } from "./routes/orders.js";
+import { startOrderPoller } from "./services/orderPoller.js";
 
 const app = express();
 app.use(cors());
@@ -23,6 +25,9 @@ app.use("/devices", devicesRouter);
 app.use("/lists", listsRouter);
 app.use("/matches", matchesRouter);
 app.use("/qty", qtyRouter);
+app.use("/orders", ordersRouter);
+
+startOrderPoller();
 
 const port = Number(process.env.PORT ?? 4200);
 app.listen(port, () => {

@@ -111,6 +111,9 @@ CREATE TABLE IF NOT EXISTS orders (
   provider_order_id TEXT,
   status TEXT NOT NULL DEFAULT 'placed',
   total REAL,
+  courier_name TEXT,
+  courier_distance_km REAL,
+  activity_push_token TEXT,
   placed_at TEXT,
   eta_at TEXT
 );
